@@ -8,6 +8,8 @@ const handle = require('./handlers/index');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
+
+const db = require('./models/index.js');
 const app = express();
 const port = process.env.PORT;
 

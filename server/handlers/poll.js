@@ -76,3 +76,44 @@ exports.deletePoll = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.vote = async (req, res, next) => {
+  try {
+    const { id: pollId } = req.params;
+    const { id: userId } = req.decoded;
+    const { answer } = req.body;
+
+    if (answer) {
+      const poll = await db.Poll.findById(pollId);
+
+      if (!poll) throw new Error("No poll found");
+
+      const vote = poll.options.map(option => {
+        if (option.option === answer) {
+          return {
+            option: option.option,
+            _id: option._id,
+            votes: options.votes + 1
+          };
+        } else {
+          return option;
+        }
+      });
+      // checking if the user has already voted
+      // array is less than zero.  user hasnt voted yet.
+      if (poll.voted.filter(user => user.toString() === userId).length <= 0) {
+        poll.voted.push(userId);
+        poll.options = vote;
+        await poll.save();
+        res.status(202).json(poll);
+      } else {
+        throw new Error("already voted");
+      }
+    } else {
+      throw new Error("No answer provided");
+    }
+  } catch (err) {
+    err.status = 400;
+    next(err);
+  }
+};
